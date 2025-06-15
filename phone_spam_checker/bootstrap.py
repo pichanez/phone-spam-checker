@@ -1,3 +1,5 @@
+from typing import Iterable, cast
+
 from .logging_config import configure_logging
 from .registry import register_default_checkers, load_checker_module
 from .config import settings
@@ -16,5 +18,6 @@ def initialize() -> None:
         remote_port=int(settings.log_remote_port) if settings.log_remote_host else 0,
     )
     register_default_checkers()
-    for mod in filter(None, getattr(settings, "checker_modules", [])):
-        load_checker_module(mod)
+    modules = cast(Iterable[str], filter(None, getattr(settings, "checker_modules", [])))
+    for mod_name in modules:
+        load_checker_module(str(mod_name))

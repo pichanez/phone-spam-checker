@@ -2,8 +2,6 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from pydantic import BaseModel, field_validator
-
 from phone_spam_checker.domain.models import CheckStatus
 from phone_spam_checker.validators import validate_phone_number
 

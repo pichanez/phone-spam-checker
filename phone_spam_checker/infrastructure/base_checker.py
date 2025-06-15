@@ -13,4 +13,3 @@ class AndroidAppChecker(PhoneChecker):
         super().__init__(device)
         self.client = AndroidDeviceClient(device)
         self.d = self.client.d
-

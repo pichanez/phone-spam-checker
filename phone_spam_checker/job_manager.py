@@ -94,7 +94,7 @@ class BaseJobRepository(JobRepository, ABC):
             else:
                 item = dict(r)
             status = item.get("status")
-            if hasattr(status, "value"):
+            if status is not None and hasattr(status, "value"):
                 item["status"] = status.value
             services = item.get("services")
             if isinstance(services, list):
@@ -153,9 +153,7 @@ class BaseJobRepository(JobRepository, ABC):
         with self._lock:
             running = self._has_running_job(device)
         if running:
-            raise JobAlreadyRunningError(
-                f"Previous task is still in progress for {device}"
-            )
+            raise JobAlreadyRunningError(f"Previous task is still in progress for {device}")
 
     def cleanup(self) -> None:
         limit = datetime.utcnow() - self.JOB_TTL
@@ -294,15 +292,11 @@ class PostgresJobRepository(BaseJobRepository):
         if error is not None:
             values["error"] = error
         with self._engine.begin() as conn:
-            conn.execute(
-                update(self._table)
-                .where(self._table.c.job_id == job_id)
-                .values(**values)
-            )
+            conn.execute(update(self._table).where(self._table.c.job_id == job_id).values(**values))
 
     def _get_job_row(self, job_id: str) -> Optional[tuple]:
         with self._engine.begin() as conn:
-            return conn.execute(
+            row = conn.execute(
                 select(
                     self._table.c.status,
                     self._table.c.results,
@@ -310,6 +304,7 @@ class PostgresJobRepository(BaseJobRepository):
                     self._table.c.created_at,
                 ).where(self._table.c.job_id == job_id)
             ).first()
+            return tuple(row) if row is not None else None
 
     def _has_running_job(self, device: str) -> bool:
         with self._engine.begin() as conn:

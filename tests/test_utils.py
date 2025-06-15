@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 import sys
 import types
 import csv
@@ -38,9 +39,7 @@ def test_read_phone_list_invalid(tmp_path: Path) -> None:
 
 def test_write_results(tmp_path: Path) -> None:
     file = tmp_path / "out.csv"
-    results = [
-        PhoneCheckResult(phone_number="123", status=CheckStatus.SPAM, details="bad")
-    ]
+    results = [PhoneCheckResult(phone_number="123", status=CheckStatus.SPAM, details="bad")]
     write_results(file, results)
     with file.open(encoding="utf-8") as f:
         reader = list(csv.DictReader(f))

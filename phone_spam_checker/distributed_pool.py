@@ -20,14 +20,14 @@ class RedisDevicePool:
         self._name = name
         self._redis = client
         self._local = threading.local()
-        if devices and not self._redis.exists(name):
-            self._redis.rpush(name, *devices)
+        if devices and not self._redis.exists(name):  # type: ignore[arg-type]
+            self._redis.rpush(name, *devices)  # type: ignore[arg-type]
 
     def acquire(self, timeout: int = 1) -> str:
-        result = self._redis.blpop(self._name, timeout=timeout)
+        result = self._redis.blpop(self._name, timeout=timeout)  # type: ignore[arg-type]
         if result is None:
             raise JobAlreadyRunningError("No free device")
-        value = result[1]
+        value = result[1]  # type: ignore[index]
         if isinstance(value, bytes):
             value = value.decode()
         return value
@@ -36,7 +36,7 @@ class RedisDevicePool:
         self._redis.rpush(self._name, device)
 
     def __len__(self) -> int:
-        return int(self._redis.llen(self._name))
+        return int(self._redis.llen(self._name))  # type: ignore[arg-type]
 
     # ------------------------------------------------------------------
     # context manager support
@@ -82,7 +82,8 @@ class RedisJobQueue:
     async def get(self) -> Tuple[str, List[str], str]:
         loop = asyncio.get_event_loop()
         data = await loop.run_in_executor(
-            None, lambda: self._redis.blpop(self._name)[1]
+            None,
+            lambda: self._redis.blpop(self._name)[1],  # type: ignore[arg-type,index]
         )
         job_id, numbers, service = json.loads(data)
         return job_id, numbers, service

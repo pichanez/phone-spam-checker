@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class KasperskyWhoCallsChecker(AndroidAppChecker):
-
     def launch_app(self) -> bool:
         logger.info("Launching Kaspersky WhoCalls")
         if not self.client.start_app(APP_PACKAGE, APP_ACTIVITY):
@@ -83,6 +82,3 @@ class KasperskyWhoCallsChecker(AndroidAppChecker):
 
         logger.info(f"{phone} \u2192 {result.status}")
         return result
-
-
-

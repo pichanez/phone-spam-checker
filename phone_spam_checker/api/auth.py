@@ -1,7 +1,7 @@
 import jwt
 from jwt import PyJWTError
 from datetime import datetime, timedelta
-from fastapi import HTTPException, Security, Depends
+from fastapi import HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -34,18 +34,19 @@ async def get_token(
 ) -> str:
     if credentials is None:
         raise HTTPException(status_code=403, detail="Forbidden")
-    decode_kwargs = {
-        "algorithms": ["HS256"],
-        "options": {"verify_exp": True},
-    }
-    if settings.token_audience:
-        decode_kwargs["audience"] = settings.token_audience
-    if settings.token_issuer:
-        decode_kwargs["issuer"] = settings.token_issuer
+    audience = settings.token_audience or None
+    issuer = settings.token_issuer or None
 
     for key in settings.secret_keys:
         try:
-            jwt.decode(credentials.credentials, key, **decode_kwargs)
+            jwt.decode(
+                credentials.credentials,
+                key,
+                algorithms=["HS256"],
+                options={"verify_exp": True},
+                audience=audience,
+                issuer=issuer,
+            )
             break
         except PyJWTError:
             continue

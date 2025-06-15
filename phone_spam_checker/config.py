@@ -81,11 +81,9 @@ class Settings(BaseSettings):
 
 
 try:
-    settings = Settings()
+    settings = Settings()  # type: ignore[call-arg]
 except Exception as exc:  # ValidationError or others
-    raise RuntimeError(
-        "API_KEY and SECRET_KEY environment variables are required"
-    ) from exc
+    raise RuntimeError("API_KEY and SECRET_KEY environment variables are required") from exc
 
 if not settings.api_key or not settings.secret_key:
     raise RuntimeError("API_KEY and SECRET_KEY environment variables are required")

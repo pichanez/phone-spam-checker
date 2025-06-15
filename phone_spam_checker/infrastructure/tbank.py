@@ -1,8 +1,7 @@
 import logging
 import re
-from typing import Optional
 
-import requests
+import requests  # type: ignore
 
 from ..domain.models import PhoneCheckResult, CheckStatus
 from ..domain.phone_checker import PhoneChecker

@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from importlib import util
 from pathlib import Path
 import sys
@@ -21,6 +22,7 @@ CONFIG_PATH = Path(__file__).resolve().parents[1] / "phone_spam_checker" / "conf
 
 def load_config():
     spec = util.spec_from_file_location("config", CONFIG_PATH)
+    assert spec is not None
     module = util.module_from_spec(spec)
     spec.loader.exec_module(module)  # type: ignore
     return module

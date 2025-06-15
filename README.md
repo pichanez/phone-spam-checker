@@ -6,10 +6,10 @@ and the Tbank web service for Russian numbers.
 
 ## Requirements
 
-- Python 3.10 (see `.python-version` for the exact patch version)
+- Python 3.11 (see `.python-version` for the exact patch version)
 - ADB installed and accessible if running locally
 - Connected Android devices for each service
-- Pinned package versions listed in `requirements.txt`
+- Зависимости устанавливаются через `poetry` и указаны в `pyproject.toml`
 
 ## Environment Variables
 
@@ -106,13 +106,13 @@ results collected so far.
 
 ## Running locally
 
-Install dependencies and launch `uvicorn`:
+Install dependencies and launch `uvicorn` using Poetry:
 
 ```bash
-pip install -r requirements.txt
+poetry install
 export API_KEY=your-key
 export SECRET_KEY=your-secret
-uvicorn phone_spam_checker.api:app --host 0.0.0.0 --port 8000
+poetry run uvicorn phone_spam_checker.api:app --host 0.0.0.0 --port 8000
 ```
 
 `phone_spam_checker.api` automatically configures logging and registers the
@@ -144,5 +144,26 @@ performed automatically in the CLI tools, so simply run the command above.
 Run the unit tests (requires the optional dependency `httpx` for API tests) with:
 
 ```bash
-pytest -q
+poetry run pytest --cov=phone_spam_checker --cov-report=term --cov-report=xml
 ```
+
+## Pre-commit
+
+Чтобы проверки выполнялись автоматически перед коммитом, установите git hooks:
+
+```bash
+poetry run pre-commit install
+```
+
+Запустить все хуки вручную можно так:
+
+```bash
+poetry run pre-commit run --all-files
+```
+
+## CI
+
+Проект использует GitHub Actions для автоматического запуска тестов,
+проверок кодстайла и `pip-audit`. Все проверки выполняются при создании
+pull request'ов и при пуше в основную ветку.
+

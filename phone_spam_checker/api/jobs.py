@@ -3,10 +3,10 @@ import contextlib
 import logging
 import re
 import socket
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 from fastapi import FastAPI
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from phone_spam_checker.config import settings
@@ -21,9 +21,7 @@ from phone_spam_checker.bootstrap import initialize
 logger = logging.getLogger(__name__)
 
 
-async def _check_all(
-    checker: PhoneChecker, numbers: List[str]
-) -> List[PhoneCheckResult]:
+async def _check_all(checker: PhoneChecker, numbers: List[str]) -> List[PhoneCheckResult]:
     """Sequentially check all numbers on one device."""
     results: List[PhoneCheckResult] = []
     for num in numbers:
@@ -31,9 +29,7 @@ async def _check_all(
     return results
 
 
-async def enqueue_job(
-    job_id: str, numbers: List[str], service: str, app: FastAPI
-) -> None:
+async def enqueue_job(job_id: str, numbers: List[str], service: str, app: FastAPI) -> None:
     """Place a new job into the worker queue."""
     queue = app.state.job_queue
     await queue.put((job_id, numbers, service))
@@ -147,7 +143,7 @@ async def _run_check(
     try:
         # -- device initialization
         if kasp_nums:
-            await asyncio.to_thread(_ping_device, *kasp_device.split(":"))
+            await asyncio.to_thread(_ping_device, *kasp_device.split(":"))  # type: ignore[arg-type]
             kasp_checker_cls = get_checker_class("kaspersky")
             kasp_checker = await asyncio.to_thread(kasp_checker_cls, kasp_device)
             launched = await asyncio.to_thread(kasp_checker.launch_app)
@@ -155,7 +151,7 @@ async def _run_check(
                 raise RuntimeError("Failed to launch Kaspersky Who Calls")
 
         if tc_nums:
-            await asyncio.to_thread(_ping_device, *tc_device.split(":"))
+            await asyncio.to_thread(_ping_device, *tc_device.split(":"))  # type: ignore[arg-type]
             tc_checker_cls = get_checker_class("truecaller")
             tc_checker = await asyncio.to_thread(tc_checker_cls, tc_device)
             launched = await asyncio.to_thread(tc_checker.launch_app)
@@ -165,8 +161,10 @@ async def _run_check(
         # -- parallel checking
         tasks = []
         if kasp_nums:
+            assert kasp_checker is not None
             tasks.append(_check_all(kasp_checker, kasp_nums))
         if tc_nums:
+            assert tc_checker is not None
             tasks.append(_check_all(tc_checker, tc_nums))
 
         grouped = await asyncio.gather(*tasks)
@@ -182,9 +180,7 @@ async def _run_check(
                         status=r.status,
                         details=r.details,
                         services=[
-                            ServiceResult(
-                                service=service, status=r.status, details=r.details
-                            )
+                            ServiceResult(service=service, status=r.status, details=r.details)
                         ],
                     )
                 )
@@ -237,7 +233,7 @@ async def _run_check_gc(
     results: List[CheckResult] = []
 
     try:
-        await asyncio.to_thread(_ping_device, *gc_device.split(":"))
+        await asyncio.to_thread(_ping_device, *gc_device.split(":"))  # type: ignore[arg-type]
         checker = await asyncio.to_thread(checker_cls, gc_device)
         launched = await asyncio.to_thread(checker.launch_app)
         if not launched:
@@ -253,9 +249,7 @@ async def _run_check_gc(
                     status=r.status,
                     details=r.details,
                     services=[
-                        ServiceResult(
-                            service="getcontact", status=r.status, details=r.details
-                        )
+                        ServiceResult(service="getcontact", status=r.status, details=r.details)
                     ],
                 )
             )
@@ -300,11 +294,7 @@ async def _run_check_tbank(
                     phone_number=r.phone_number,
                     status=r.status,
                     details=r.details,
-                    services=[
-                        ServiceResult(
-                            service="tbank", status=r.status, details=r.details
-                        )
-                    ],
+                    services=[ServiceResult(service="tbank", status=r.status, details=r.details)],
                 )
             )
 
@@ -357,10 +347,8 @@ async def _run_check_auto(
         async def run_kaspersky() -> Dict[str, PhoneCheckResult]:
             nonlocal kasp_checker
             res: Dict[str, PhoneCheckResult] = {}
-            kasp_device_addr = (
-                kasp_device or f"{settings.kasp_adb_host}:{settings.kasp_adb_port}"
-            )
-            await asyncio.to_thread(_ping_device, *kasp_device_addr.split(":"))
+            kasp_device_addr = kasp_device or f"{settings.kasp_adb_host}:{settings.kasp_adb_port}"
+            await asyncio.to_thread(_ping_device, *kasp_device_addr.split(":"))  # type: ignore[arg-type]
             kasp_checker = await asyncio.to_thread(kasp_cls, kasp_device_addr)
             launched = await asyncio.to_thread(kasp_checker.launch_app)
             if not launched:
@@ -373,10 +361,8 @@ async def _run_check_auto(
         async def run_getcontact() -> Dict[str, PhoneCheckResult]:
             nonlocal gc_checker
             res: Dict[str, PhoneCheckResult] = {}
-            gc_device_addr = (
-                gc_device or f"{settings.gc_adb_host}:{settings.gc_adb_port}"
-            )
-            await asyncio.to_thread(_ping_device, *gc_device_addr.split(":"))
+            gc_device_addr = gc_device or f"{settings.gc_adb_host}:{settings.gc_adb_port}"
+            await asyncio.to_thread(_ping_device, *gc_device_addr.split(":"))  # type: ignore[arg-type]
             gc_checker = await asyncio.to_thread(gc_cls, gc_device_addr)
             launched = await asyncio.to_thread(gc_checker.launch_app)
             if not launched:
@@ -401,10 +387,8 @@ async def _run_check_auto(
         async def run_truecaller() -> Dict[str, PhoneCheckResult]:
             nonlocal tc_checker
             res: Dict[str, PhoneCheckResult] = {}
-            tc_device_addr = (
-                tc_device or f"{settings.tc_adb_host}:{settings.tc_adb_port}"
-            )
-            await asyncio.to_thread(_ping_device, *tc_device_addr.split(":"))
+            tc_device_addr = tc_device or f"{settings.tc_adb_host}:{settings.tc_adb_port}"
+            await asyncio.to_thread(_ping_device, *tc_device_addr.split(":"))  # type: ignore[arg-type]
             tc_checker = await asyncio.to_thread(tc_cls, tc_device_addr)
             launched = await asyncio.to_thread(tc_checker.launch_app)
             if not launched:
@@ -491,13 +475,15 @@ def _ping_device(host: str, port: str, timeout: int = 5) -> None:
         with socket.create_connection((host, int(port)), timeout=timeout):
             logger.debug("Device %s:%s is reachable", host, port)
     except Exception as e:
+        # In some environments socket.create_connection may raise
+        # `OSError: [Errno 35] Resource deadlock avoided` when the
+        # underlying ADB server is busy. Treat it as a connection
+        # failure rather than crashing the worker.
         logger.error("Device %s:%s unreachable: %s", host, port, e)
         raise DeviceConnectionError(f"Cannot reach device {host}:{port}: {e}") from e
 
 
-def _devices_for_service(
-    service: str, numbers: Optional[List[str]] = None
-) -> List[str]:
+def _devices_for_service(service: str, numbers: Optional[List[str]] = None) -> List[str]:
     if service == "kaspersky":
         return ["kaspersky"]
     if service == "truecaller":
@@ -528,19 +514,15 @@ def _ensure_no_running(
         raise HTTPException(status_code=429, detail=str(e)) from e
 
 
-def _new_job(
-    service: str, job_manager: JobManager, numbers: Optional[List[str]] = None
-) -> str:
+def _new_job(service: str, job_manager: JobManager, numbers: Optional[List[str]] = None) -> str:
     job_id = job_manager.new_job(_devices_for_service(service, numbers))
     logger.debug("Created job %s", job_id)
     return job_id
 
 
-def _complete_job(
-    job_id: str, results: List[CheckResult], job_manager: JobManager
-) -> None:
+def _complete_job(job_id: str, results: List[CheckResult], job_manager: JobManager) -> None:
     logger.debug("Marking job %s as completed", job_id)
-    job_manager.complete_job(job_id, results)
+    job_manager.complete_job(job_id, cast(List[PhoneCheckResult], results))
 
 
 def _fail_job(job_id: str, error: str, job_manager: JobManager) -> None:
@@ -548,7 +530,7 @@ def _fail_job(job_id: str, error: str, job_manager: JobManager) -> None:
     job_manager.fail_job(job_id, error)
 
 
-def device_error_handler(request, exc: DeviceConnectionError):
+def device_error_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error("Device connection error: %s", exc)
     return JSONResponse(status_code=503, content={"detail": str(exc)})
 

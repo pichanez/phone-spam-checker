@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class GetContactChecker(AndroidAppChecker):
-
     def launch_app(self) -> bool:
         logger.info("Launching GetContact")
         if not self.client.start_app(APP_PACKAGE, APP_ACTIVITY):
@@ -98,7 +97,3 @@ class GetContactChecker(AndroidAppChecker):
 
         logger.info(f"{phone} -> {result.status}")
         return result
-
-
-
-

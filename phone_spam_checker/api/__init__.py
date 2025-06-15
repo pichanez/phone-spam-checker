@@ -7,7 +7,7 @@ from .jobs import start_background_tasks, device_error_handler, exception_middle
 from phone_spam_checker.dependencies import init_app
 from .schemas import CheckResult
 from phone_spam_checker.domain.models import CheckStatus
-from . import jobs, auth  # re-export for convenience
+from . import jobs, auth  # re-export for convenience  # noqa: F401
 
 app = FastAPI(title="Phone Checker API", version="2.0")
 init_app(app)
@@ -19,11 +19,8 @@ app.include_router(router)
 async def startup_event() -> None:
     await start_background_tasks(app)
 
+
 app.add_exception_handler(DeviceConnectionError, device_error_handler)
 app.middleware("http")(exception_middleware)
 
-__all__ = [
-    "app",
-    "CheckResult",
-    "CheckStatus",
-]
+__all__ = ["app", "CheckResult", "CheckStatus", "jobs", "auth"]

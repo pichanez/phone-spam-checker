@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 import sys
 import types
 import asyncio
@@ -58,8 +59,10 @@ async def test_parallel_checks(monkeypatch):
     with contextlib.suppress(asyncio.CancelledError):
         await asyncio.gather(*workers)
 
-    assert manager.get_job(j1)["status"] == "completed"
-    assert manager.get_job(j2)["status"] == "completed"
+    job1 = manager.get_job(j1)
+    job2 = manager.get_job(j2)
+    assert job1 is not None and job1["status"] == "completed"
+    assert job2 is not None and job2["status"] == "completed"
     assert len(pools["kaspersky"]) == 2
     api.app.dependency_overrides.clear()
 
@@ -78,8 +81,6 @@ async def test_worker_recovers_on_error(monkeypatch):
         "truecaller": DevicePool([]),
         "getcontact": DevicePool([]),
     }
-
-    counter = {"n": 0}
 
     class FaultyPools(dict):
         def __init__(self, data):
@@ -106,8 +107,9 @@ async def test_worker_recovers_on_error(monkeypatch):
     with contextlib.suppress(asyncio.CancelledError):
         await worker
 
-    assert manager.get_job(j1)["status"] == "failed"
-    assert manager.get_job(j2)["status"] == "completed"
+    job1 = manager.get_job(j1)
+    job2 = manager.get_job(j2)
+    assert job1 is not None and job1["status"] == "failed"
+    assert job2 is not None and job2["status"] == "completed"
     assert len(pools["kaspersky"]) == 1
     api.app.dependency_overrides.clear()
-
