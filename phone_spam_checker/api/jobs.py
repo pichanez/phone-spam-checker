@@ -475,6 +475,10 @@ def _ping_device(host: str, port: str, timeout: int = 5) -> None:
         with socket.create_connection((host, int(port)), timeout=timeout):
             logger.debug("Device %s:%s is reachable", host, port)
     except Exception as e:
+        # In some environments socket.create_connection may raise
+        # `OSError: [Errno 35] Resource deadlock avoided` when the
+        # underlying ADB server is busy. Treat it as a connection
+        # failure rather than crashing the worker.
         logger.error("Device %s:%s unreachable: %s", host, port, e)
         raise DeviceConnectionError(f"Cannot reach device {host}:{port}: {e}") from e
 
