@@ -13,4 +13,12 @@ repos:
     hooks:
       - id: mypy
         args: ["--install-types", "--non-interactive"]
+        additional_dependencies:
+          - fastapi==0.115.12
+          - pydantic==2.11.4
+          - pydantic-settings==2.2.1
+          - PyJWT==2.8.0
+          - SQLAlchemy==2.0.41
+          - pytest==8.2.0
+          - pytest-asyncio==0.23.5
 
