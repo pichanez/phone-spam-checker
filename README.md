@@ -161,3 +161,9 @@ poetry run pre-commit install
 poetry run pre-commit run --all-files
 ```
 
+## CI
+
+Проект использует GitHub Actions для автоматического запуска тестов,
+проверок кодстайла и `pip-audit`. Все проверки выполняются при создании
+pull request'ов и при пуше в основную ветку.
+
