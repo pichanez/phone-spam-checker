@@ -23,6 +23,6 @@ jobs:
       - name: Run pre-commit
         run: poetry run pre-commit run --all-files
       - name: Run tests
-        run: poetry run pytest -q
+        run: poetry run pytest --cov=phone_spam_checker --cov-report=xml --cov-report=term
       - name: Run pip-audit
         run: poetry run pip-audit

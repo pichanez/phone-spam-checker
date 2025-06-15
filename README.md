@@ -144,7 +144,7 @@ performed automatically in the CLI tools, so simply run the command above.
 Run the unit tests (requires the optional dependency `httpx` for API tests) with:
 
 ```bash
-poetry run pytest -q
+poetry run pytest --cov=phone_spam_checker --cov-report=term --cov-report=xml
 ```
 
 ## Pre-commit

@@ -46,6 +46,7 @@ ruff = "0.2.2"
 mypy = "1.9.0"
 pytest = "8.2.0"
 pytest-asyncio = "0.23.5"
+pytest-cov = "4.1.0"
 pip-audit = "2.7.1"
 pre-commit = "^4.2.0"
 
