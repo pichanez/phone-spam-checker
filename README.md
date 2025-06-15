@@ -146,3 +146,18 @@ Run the unit tests (requires the optional dependency `httpx` for API tests) with
 ```bash
 poetry run pytest -q
 ```
+
+## Pre-commit
+
+Чтобы проверки выполнялись автоматически перед коммитом, установите git hooks:
+
+```bash
+poetry run pre-commit install
+```
+
+Запустить все хуки вручную можно так:
+
+```bash
+poetry run pre-commit run --all-files
+```
+

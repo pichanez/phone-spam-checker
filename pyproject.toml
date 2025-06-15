@@ -47,3 +47,15 @@ mypy = "1.9.0"
 pytest = "8.2.0"
 pytest-asyncio = "0.23.5"
 pip-audit = "2.7.1"
+pre-commit = "^4.2.0"
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+
