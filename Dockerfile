@@ -1,5 +1,5 @@
-# Use slim Python 3.10 image
-FROM python:3.10-slim
+# Use slim Python 3.11 image
+FROM python:3.11-slim
 
 # Install ADB for Android interaction
 RUN apt-get update \

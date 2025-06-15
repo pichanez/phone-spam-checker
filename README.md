@@ -6,7 +6,7 @@ and the Tbank web service for Russian numbers.
 
 ## Requirements
 
-- Python 3.10 (see `.python-version` for the exact patch version)
+- Python 3.11 (see `.python-version` for the exact patch version)
 - ADB installed and accessible if running locally
 - Connected Android devices for each service
 - Pinned package versions listed in `requirements.txt`
