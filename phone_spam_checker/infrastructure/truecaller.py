@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class TruecallerChecker(AndroidAppChecker):
-
     def launch_app(self) -> bool:
         logger.info("Launching Truecaller")
         if not self.client.start_app(APP_PACKAGE, APP_ACTIVITY):
@@ -53,7 +52,9 @@ class TruecallerChecker(AndroidAppChecker):
             inp.set_text(phone)
             self.d.press("enter")
 
-            if not self.d(**LOC_PHONE_NUMBER).wait(timeout=5) and not self.d(**LOC_SPAM_TEXT).exists(timeout=5):
+            if not self.d(**LOC_PHONE_NUMBER).wait(timeout=5) and not self.d(
+                **LOC_SPAM_TEXT
+            ).exists(timeout=5):
                 raise RuntimeError("Result screen did not load")
 
             if self.d(**LOC_SEARCH_WEB).exists(timeout=2):
@@ -82,7 +83,3 @@ class TruecallerChecker(AndroidAppChecker):
 
         logger.info(f"{phone} -> {result.status}")
         return result
-
-
-
-

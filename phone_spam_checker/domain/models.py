@@ -13,9 +13,11 @@ class CheckStatus(str, Enum):
     SAFE = "Safe"
     ERROR = "Error"
 
+
 @dataclass
 class PhoneCheckResult:
     """Result of phone number verification."""
+
     phone_number: str
     status: CheckStatus
     details: str = ""

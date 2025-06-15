@@ -1,7 +1,8 @@
-import asyncio
+from typing import cast
 import pytest
 
 from phone_spam_checker.distributed_pool import RedisDevicePool, RedisJobQueue
+from redis import Redis
 
 
 class FakeRedis:
@@ -25,7 +26,7 @@ class FakeRedis:
 
 
 def test_redis_device_pool():
-    client = FakeRedis()
+    client = cast(Redis, FakeRedis())
     pool = RedisDevicePool("pool:test", ["dev1"], client)
     with pool as dev:
         assert dev == "dev1"
@@ -35,7 +36,7 @@ def test_redis_device_pool():
 
 @pytest.mark.asyncio
 async def test_redis_job_queue():
-    client = FakeRedis()
+    client = cast(Redis, FakeRedis())
     q = RedisJobQueue("jobs", client)
     await q.put(("job", ["1"], "svc"))
     job_id, nums, svc = await q.get()
@@ -44,4 +45,3 @@ async def test_redis_job_queue():
     assert svc == "svc"
     q.task_done()
     await q.join()
-

@@ -68,9 +68,7 @@ def configure_logging(
     if log_file:
         if max_bytes > 0:
             handlers.append(
-                RotatingFileHandler(
-                    log_file, maxBytes=max_bytes, backupCount=backup_count
-                )
+                RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
             )
         else:
             handlers.append(logging.FileHandler(log_file))

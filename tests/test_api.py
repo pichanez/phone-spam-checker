@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 import asyncio
 from datetime import datetime
 import jwt
@@ -22,7 +23,6 @@ from phone_spam_checker.logging_config import configure_logging
 from phone_spam_checker.config import settings
 from phone_spam_checker.job_manager import JobRepository, JobManager, SQLiteJobRepository
 from phone_spam_checker.dependencies import get_job_manager
-import phone_spam_checker.dependencies as deps
 from phone_spam_checker.exceptions import JobAlreadyRunningError, DeviceConnectionError
 from phone_spam_checker.device_pool import DevicePool
 from phone_spam_checker.domain.phone_checker import PhoneChecker
@@ -110,9 +110,7 @@ def test_submit_check(monkeypatch):
 
 
 def test_get_status(monkeypatch):
-    results = [
-        api.CheckResult(phone_number="123", status=api.CheckStatus.SAFE, details="")
-    ]
+    results = [api.CheckResult(phone_number="123", status=api.CheckStatus.SAFE, details="")]
     job_data = {
         "job123": {
             "status": "completed",
@@ -121,6 +119,7 @@ def test_get_status(monkeypatch):
             "created_at": datetime.utcnow(),
         }
     }
+
     def override(request: Request):
         return JobManager(DummyRepository(job_data))
 
@@ -140,15 +139,14 @@ def test_get_status(monkeypatch):
 
 
 async def _dummy_run_check(job_id, numbers, service, manager):
-    results = [
-        api.CheckResult(phone_number=n, status=api.CheckStatus.SAFE) for n in numbers
-    ]
+    results = [api.CheckResult(phone_number=n, status=api.CheckStatus.SAFE) for n in numbers]
     manager.complete_job(job_id, results)
 
 
 def test_background_task_completion(monkeypatch):
     manager = JobManager(DummyRepository())
     api.app.state.job_manager = manager
+
     def override(request: Request):
         return manager
 
@@ -170,6 +168,7 @@ def test_background_task_completion(monkeypatch):
     assert response.status_code == 200
     assert response.json() == {"job_id": "job123"}
     job = manager.get_job("job123")
+    assert job is not None
     assert job["status"] == "completed"
     assert job["results"][0].phone_number == "123"
     api.app.dependency_overrides.clear()
@@ -199,6 +198,7 @@ def test_job_failed_when_device_unreachable(monkeypatch):
 
     manager = JobManager(DummyRepository())
     api.app.state.job_manager = manager
+
     def override(request: Request):
         return manager
 
@@ -223,6 +223,7 @@ def test_job_failed_when_device_unreachable(monkeypatch):
     )
     assert response.status_code == 200
     job = manager.get_job("job123")
+    assert job is not None
     assert job["status"] == "failed"
     assert "boom" in job["error"]
     api.app.dependency_overrides.clear()
@@ -259,6 +260,7 @@ def test_invalid_phone_number():
 def test_multiple_jobs(monkeypatch):
     manager = JobManager(DummyRepository())
     api.app.state.job_manager = manager
+
     def override(request: Request):
         return manager
 
@@ -291,13 +293,16 @@ def test_multiple_jobs(monkeypatch):
 
     assert r1.status_code == 200
     assert r2.status_code == 200
-    assert manager.get_job("job1")["status"] == "completed"
-    assert manager.get_job("job2")["status"] == "completed"
+    job1 = manager.get_job("job1")
+    job2 = manager.get_job("job2")
+    assert job1 is not None and job1["status"] == "completed"
+    assert job2 is not None and job2["status"] == "completed"
     api.app.dependency_overrides.clear()
 
 
 def test_expired_token(monkeypatch):
     monkeypatch.setattr(settings, "token_ttl_hours", -1)
+
     def override(request: Request):
         return JobManager(DummyRepository())
 
@@ -371,7 +376,9 @@ async def test_auto_returns_service_results(monkeypatch):
 
     job_id = api.jobs._new_job("auto", manager, ["79100000000", "+123"])
     await api.jobs._run_check_auto(job_id, ["79100000000", "+123"], manager)
-    res = manager.get_job(job_id)["results"]
+    job = manager.get_job(job_id)
+    assert job is not None
+    res = job["results"]
     assert res[0]["services"]
     svcs = {s["service"] for s in res[0]["services"]}
     assert svcs == {"kaspersky", "getcontact", "tbank"}
@@ -419,7 +426,9 @@ async def test_auto_russian_with_8(monkeypatch):
     job_id = api.jobs._new_job("auto", manager, ["89260000000"])
     await api.jobs._run_check_auto(job_id, ["89260000000"], manager)
     assert "truecaller" not in called
-    res = manager.get_job(job_id)["results"][0]["services"]
+    job = manager.get_job(job_id)
+    assert job is not None
+    res = job["results"][0]["services"]
     svcs = {s["service"] for s in res}
     assert svcs == {"kaspersky", "getcontact", "tbank"}
 
@@ -443,11 +452,7 @@ def test_db_stores_unicode():
     repo = SQLiteJobRepository(":memory:")
     manager = JobManager(repo)
 
-    result = api.CheckResult(
-        phone_number="123",
-        status=api.CheckStatus.SPAM,
-        details="Русский текст"
-    )
+    result = PhoneCheckResult(phone_number="123", status=CheckStatus.SPAM, details="Русский текст")
 
     job_id = manager.new_job([])
     manager.complete_job(job_id, [result])
@@ -457,7 +462,7 @@ def test_db_stores_unicode():
 
 
 def test_tbank_decodes_escaped_html(monkeypatch):
-    import requests as req
+    import requests as req  # type: ignore
 
     escaped = (
         "<div>\u041d\u043e\u043c\u0435\u0440 8"  # 'Номер 8'

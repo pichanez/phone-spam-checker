@@ -21,6 +21,6 @@ def write_results(path: Path, results: Iterable[PhoneCheckResult]) -> None:
         for r in results:
             row = asdict(r)
             status = row.get("status")
-            if hasattr(status, "value"):
+            if status is not None and hasattr(status, "value"):
                 row["status"] = status.value
             writer.writerow(row)

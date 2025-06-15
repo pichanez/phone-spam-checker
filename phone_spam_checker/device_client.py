@@ -7,7 +7,7 @@ class AndroidDeviceClient:
     """Wrapper around uiautomator2 providing common operations."""
 
     def __init__(self, device_id: str) -> None:
-        import uiautomator2 as u2
+        import uiautomator2 as u2  # type: ignore
 
         logger.info("Connecting to device %s", device_id)
         self.d = u2.connect(device_id)

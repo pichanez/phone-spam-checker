@@ -1,18 +1,26 @@
-from typing import Dict
+from typing import Dict, Union
 import asyncio
 from fastapi import FastAPI, Request
 
 from .config import settings
 from .device_pool import DevicePool
 from .distributed_pool import RedisDevicePool, RedisJobQueue
+
 try:
     import redis  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
     redis = None  # type: ignore
-from .job_manager import JobManager, SQLiteJobRepository, PostgresJobRepository
+from .job_manager import (
+    JobManager,
+    SQLiteJobRepository,
+    PostgresJobRepository,
+    JobRepository,
+)
+
 
 def init_app(app: FastAPI) -> None:
     """Create and store shared dependencies on the application."""
+    repo: JobRepository
     if settings.pg_host:
         repo = PostgresJobRepository(settings.pg_dsn)
     else:
@@ -36,13 +44,13 @@ def init_app(app: FastAPI) -> None:
         job_queue = asyncio.Queue()
     app.state.job_queue = job_queue
 
-    devices_map = {
+    devices_map: Dict[str, list[str]] = {
         "kaspersky": settings.kasp_devices,
         "truecaller": settings.tc_devices,
         "getcontact": settings.gc_devices,
         "tbank": [],
     }
-    pools: Dict[str, DevicePool] = {}
+    pools: Dict[str, Union[DevicePool, RedisDevicePool]] = {}
     for svc, devs in devices_map.items():
         if settings.use_redis:
             pools[svc] = RedisDevicePool(f"pool:{svc}", devs, redis_client)  # type: ignore[arg-type]

@@ -3,6 +3,7 @@ from typing import List
 
 from .exceptions import JobAlreadyRunningError
 
+
 class DevicePool:
     """Simple synchronized pool for allocating devices."""
 

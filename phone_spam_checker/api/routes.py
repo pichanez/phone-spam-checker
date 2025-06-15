@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 from .auth import login, get_token
-from .schemas import CheckRequest, CheckResult, JobResponse, StatusResponse
+from .schemas import CheckRequest, JobResponse, StatusResponse
 from . import jobs
 from phone_spam_checker.exceptions import JobAlreadyRunningError
 from phone_spam_checker.job_manager import JobManager
@@ -34,7 +34,9 @@ def submit_check(
 
 
 @router.get("/status/{job_id}", response_model=StatusResponse)
-def get_status(job_id: str, job_manager: JobManager = Depends(get_job_manager), _: str = Depends(get_token)) -> StatusResponse:
+def get_status(
+    job_id: str, job_manager: JobManager = Depends(get_job_manager), _: str = Depends(get_token)
+) -> StatusResponse:
     job = job_manager.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job ID not found")
