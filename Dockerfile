@@ -9,9 +9,11 @@ RUN apt-get update \
 # Working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy project metadata
+COPY pyproject.toml poetry.lock* ./
+# Install Poetry and project dependencies
+RUN pip install --no-cache-dir poetry==1.8.2 \
+    && poetry install --only main --no-root --no-interaction
 
 # Copy project code
 COPY . .
